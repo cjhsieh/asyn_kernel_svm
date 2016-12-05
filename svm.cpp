@@ -966,6 +966,8 @@ double Solver::compute_accuracy(double *alpha, const svm_problem *prob, const sv
 {
 	int correct = 0;
 	int total = 0;
+	if (prob->l_test==0)
+		return 0;
 #pragma omp parallel for 
 	for ( int itest = 0; itest < prob->l_test ; itest ++ ) 
 	{
@@ -2008,6 +2010,8 @@ static decision_function svm_train_one(
 {
 	double *alpha = Malloc(double,prob->l);
 	Solver::SolutionInfo si;
+
+	omp_set_num_threads(param->nthreads);
 	switch(param->svm_type)
 	{
 		case C_SVC:

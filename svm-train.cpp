@@ -41,7 +41,7 @@ void exit_with_help()
 //	"-q : quiet mode (no outputs)\n"
 	"-T maxiter : Maximum number of iterations (default 10*(number of samples))\n"
 	"-I i : print accuracy after every i iterations (default maxiter/10)\n"
-	"-N nthreads : number of threads (default ?)\n"
+	"-N nthreads : number of threads\n"
 	);
 	exit(1);
 }
@@ -54,8 +54,8 @@ void exit_input_error(int line_num)
 
 void parse_command_line(int argc, char **argv, char *input_file_name, char *testing_file_name, char *model_file_name);
 
-void read_problem(const char *filename);
-void read_testing_problem(const char *filename_testing);
+int read_problem(const char *filename);
+int read_testing_problem(const char *filename_testing);
 void do_cross_validation();
 
 struct svm_parameter param;		// set by parse_command_line
@@ -95,7 +95,8 @@ int main(int argc, char **argv)
 	char testing_file_name[1024];
 	const char *error_msg;
 	parse_command_line(argc, argv, input_file_name, testing_file_name, model_file_name);
-	read_problem(input_file_name);
+	if (read_problem(input_file_name)==-1)
+		return -1;
 	if ( param.maxiter == -1 )
 		param.maxiter = prob.l*10;
 	if ( param.inneriter == -1)
@@ -302,7 +303,7 @@ void parse_command_line(int argc, char **argv, char *input_file_name, char *test
 	}
 }
 // read in a problem (in svmlight format)
-void read_problem(const char *filename)
+int read_problem(const char *filename)
 {
 	int elements, max_index, inst_max_index, i, j;
 	FILE *fp = fopen(filename,"r");
@@ -313,7 +314,7 @@ void read_problem(const char *filename)
 	if(fp == NULL)
 	{
 		fprintf(stderr,"can't open input file %s\n",filename);
-		exit(1);
+		return -1;
 	}
 
 	prob.l = 0;
@@ -409,9 +410,10 @@ void read_problem(const char *filename)
 		}
 
 	fclose(fp);
+	return 0;
 }
 
-void read_testing_problem(const char *filename_testing)
+int read_testing_problem(const char *filename_testing)
 {
 	int elements, max_index, inst_max_index, i, j;
 	FILE *fp = fopen(filename_testing,"r");
@@ -421,7 +423,8 @@ void read_testing_problem(const char *filename_testing)
 	if(fp == NULL)
 	{
 		fprintf(stderr,"can't open input file %s\n",filename_testing);
-		exit(1);
+		prob.l_test = 0;
+		return -1;
 	}
 
 	prob.l_test = 0;
@@ -520,5 +523,6 @@ void read_testing_problem(const char *filename_testing)
 		}
 */
 	fclose(fp);
+	return 0;
 }
 
